@@ -11,9 +11,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.xiaohua</groupId>
-    <artifactId>yvpao</artifactId>
+    <artifactId>echo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>yvpao</name>
+    <name>echo</name>
     <properties>
         <java.version>1.8</java.version>
     </properties>

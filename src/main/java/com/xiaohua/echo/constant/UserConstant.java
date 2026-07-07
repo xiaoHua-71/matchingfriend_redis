@@ -2,33 +2,24 @@ package com.xiaohua.echo.constant;
 
 /**
  * 用户常量
- *
- * @author 小花
- * @from 好好学习
  */
 public interface UserConstant {
 
     /**
      * 用户登录态键
      */
-    String USER_LOGIN_STATE = "user_login";
+    String USER_LOGIN_STATE = "userLoginState";
 
-    //  region 权限
-
-    /**
-     * 默认角色
-     */
-    String DEFAULT_ROLE = "user";
+    //  ------- 权限 --------
 
     /**
-     * 管理员角色
+     * 默认权限
      */
-    String ADMIN_ROLE = "admin";
+    int DEFAULT_ROLE = 0;
 
     /**
-     * 被封号
+     * 管理员权限
      */
-    String BAN_ROLE = "ban";
+    int ADMIN_ROLE = 1;
 
-    // endregion
 }

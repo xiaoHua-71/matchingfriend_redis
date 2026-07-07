@@ -2,13 +2,8 @@
   "groups": [
     {
       "name": "cos.client",
-      "type": "com.xiaohua.yvpao.config.CosClientConfig",
-      "sourceType": "com.xiaohua.yvpao.config.CosClientConfig"
-    },
-    {
-      "name": "wx.open",
-      "type": "com.xiaohua.yvpao.config.WxOpenConfig",
-      "sourceType": "com.xiaohua.yvpao.config.WxOpenConfig"
+      "type": "com.xiaohua.echo.config.CosClientConfig",
+      "sourceType": "com.xiaohua.echo.config.CosClientConfig"
     }
   ],
   "properties": [
@@ -16,7 +11,7 @@
       "name": "cos.client.access-key",
       "type": "java.lang.String",
       "description": "accessKey",
-      "sourceType": "com.xiaohua.yvpao.config.CosClientConfig"
+      "sourceType": "com.xiaohua.echo.config.CosClientConfig"
     },
     {
       "name": "cos.client.accessKey",
@@ -27,34 +22,24 @@
       "name": "cos.client.bucket",
       "type": "java.lang.String",
       "description": "Description for cos.client.bucket.",
-      "sourceType": "com.xiaohua.yvpao.config.CosClientConfig"
+      "sourceType": "com.xiaohua.echo.config.CosClientConfig"
     },
     {
       "name": "cos.client.region",
       "type": "java.lang.String",
       "description": "Description for cos.client.region.",
-      "sourceType": "com.xiaohua.yvpao.config.CosClientConfig"
+      "sourceType": "com.xiaohua.echo.config.CosClientConfig"
     },
     {
       "name": "cos.client.secret-key",
       "type": "java.lang.String",
       "description": "secretKey",
-      "sourceType": "com.xiaohua.yvpao.config.CosClientConfig"
+      "sourceType": "com.xiaohua.echo.config.CosClientConfig"
     },
     {
       "name": "cos.client.secretKey",
       "type": "java.lang.String",
       "description": "Description for cos.client.secretKey."
-    },
-    {
-      "name": "wx.open.app-id",
-      "type": "java.lang.String",
-      "sourceType": "com.xiaohua.yvpao.config.WxOpenConfig"
-    },
-    {
-      "name": "wx.open.app-secret",
-      "type": "java.lang.String",
-      "sourceType": "com.xiaohua.yvpao.config.WxOpenConfig"
     },
     {
       "name": "wx.open.appId",
@@ -65,11 +50,6 @@
       "name": "wx.open.appSecret",
       "type": "java.lang.String",
       "description": "Description for wx.open.appSecret."
-    },
-    {
-      "name": "wx.open.wx-mp-service",
-      "type": "me.chanjar.weixin.mp.api.WxMpService",
-      "sourceType": "com.xiaohua.yvpao.config.WxOpenConfig"
     }
   ],
   "hints": []

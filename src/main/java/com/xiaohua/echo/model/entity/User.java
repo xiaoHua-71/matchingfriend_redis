@@ -1,69 +1,67 @@
 package com.xiaohua.echo.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
+import java.io.Serializable;
+import java.util.Date;
+
 /**
- * 用户
- *
- * @author 小花
- * @from 好好学习
+ * 用户实体
  */
 @TableName(value = "user")
 @Data
 public class User implements Serializable {
-
     /**
      * id
      */
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long id;
-
-    /**
-     * 用户账号
-     */
-    private String userAccount;
-
-    /**
-     * 用户密码
-     */
-    private String userPassword;
-
-    /**
-     * 开放平台id
-     */
-    private String unionId;
-
-    /**
-     * 公众号openId
-     */
-    private String mpOpenId;
 
     /**
      * 用户昵称
      */
-    private String userName;
+    private String username;
+
+    /**
+     * 账号
+     */
+    private String userAccount;
 
     /**
      * 用户头像
      */
-    private String userAvatar;
+    private String avatarUrl;
 
     /**
-     * 用户简介
+     * 性别
      */
-    private String userProfile;
+    private Integer gender;
 
     /**
-     * 用户角色：user/admin/ban
+     * 密码
      */
-    private String userRole;
+    private String userPassword;
+
+    /**
+     * 电话
+     */
+    private String phone;
+
+    /**
+     * 邮箱
+     */
+    private String email;
+
+    /**
+     * 标签列表 json
+     */
+    private String tags;
+
+    /**
+     * 状态 0 - 正常
+     */
+    private Integer userStatus;
 
     /**
      * 创建时间
@@ -71,7 +69,7 @@ public class User implements Serializable {
     private Date createTime;
 
     /**
-     * 更新时间
+     *
      */
     private Date updateTime;
 
@@ -80,6 +78,16 @@ public class User implements Serializable {
      */
     @TableLogic
     private Integer isDelete;
+
+    /**
+     * 用户角色 0 - 普通用户 1 - 管理员
+     */
+    private Integer userRole;
+
+    /**
+     *
+     */
+    private String planetCode;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
