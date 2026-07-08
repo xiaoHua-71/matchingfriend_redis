@@ -184,23 +184,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        // 1. 先查询所有用户
+        // 查询所有有标签的用户，再在内存中过滤
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.isNotNull("tags");
         List<User> userList = userMapper.selectList(queryWrapper);
+
         Gson gson = new Gson();
-        // 2. 在内存中判断是否包含要求的标签
-        return userList.stream().filter(user -> {
-            String tagsStr = user.getTags();
-            Set<String> tempTagNameSet = gson.fromJson(tagsStr, new TypeToken<Set<String>>() {
-            }.getType());
-            tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
-            for (String tagName : tagNameList) {
-                if (!tempTagNameSet.contains(tagName)) {
-                    return false;
-                }
-            }
-            return true;
-        }).map(this::getSafetyUser).collect(Collectors.toList());
+        return userList.stream()
+                .filter(user -> {
+                    String tagsStr = user.getTags();
+                    if (StringUtils.isBlank(tagsStr)) {
+                        return false;
+                    }
+                    List<String> userTags = gson.fromJson(tagsStr,
+                            new TypeToken<List<String>>() {}.getType());
+                    // 用户标签与搜索标签有任一交集即匹配
+                    return userTags.stream().anyMatch(tagNameList::contains);
+                })
+                .map(this::getSafetyUser)
+                .collect(Collectors.toList());
     }
 
     @Override
