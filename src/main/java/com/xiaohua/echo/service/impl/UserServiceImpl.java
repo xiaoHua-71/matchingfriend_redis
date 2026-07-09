@@ -17,7 +17,6 @@ import org.apache.commons.math3.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -187,19 +186,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 查询所有有标签的用户，再在内存中过滤
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.isNotNull("tags");
+        //1、获取所有有标签的用户
         List<User> userList = userMapper.selectList(queryWrapper);
+        //2、在内存中进行过滤
+        Gson gson = new Gson();//引用Gson将JSON字符串转为Java对象
 
-        Gson gson = new Gson();
-        return userList.stream()
-                .filter(user -> {
-                    String tagsStr = user.getTags();
-                    if (StringUtils.isBlank(tagsStr)) {
+        return userList.stream().filter(
+                user -> {
+                    String userTags = user.getTags();
+                    if (StringUtils.isBlank(userTags)) {
                         return false;
                     }
-                    List<String> userTags = gson.fromJson(tagsStr,
-                            new TypeToken<List<String>>() {}.getType());
-                    // 用户标签与搜索标签有任一交集即匹配
-                    return userTags.stream().anyMatch(tagNameList::contains);
+                    List<String> toUserTags = gson.fromJson(userTags, new TypeToken<List<String>>() {
+                    }.getType());
+                    return toUserTags.stream().anyMatch(tagNameList::contains);
                 })
                 .map(this::getSafetyUser)
                 .collect(Collectors.toList());
