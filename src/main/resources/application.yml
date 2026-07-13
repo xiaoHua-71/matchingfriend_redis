@@ -92,16 +92,3 @@ cos:
 # 接口文档配置
 knife4j:
   enable: true
-  openapi:
-    title: Echo API
-    description: Echo 后端接口文档
-    version: 1.0
-    contact:
-      name: XiaoHua
-      url: https://github.com/xiaoHua-71
-      email: 2035346428@qq.com
-    group:
-      default:
-        api-rule: package
-        api-rule-resources:
-          - com.xiaohua.echo.controller
