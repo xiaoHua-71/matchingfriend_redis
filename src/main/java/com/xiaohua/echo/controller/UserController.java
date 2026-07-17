@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import com.xiaohua.echo.request.SendEmailCodeRequest;
 import com.xiaohua.echo.request.UserLoginRequest;
 import com.xiaohua.echo.request.UserRegisterRequest;
 import com.xiaohua.echo.service.UserService;
@@ -32,7 +33,6 @@ import static com.xiaohua.echo.constant.UserConstant.USER_LOGIN_STATE;
  */
 @RestController
 @RequestMapping("/user")
-@CrossOrigin(origins = {"http://localhost:3000"})
 @Slf4j
 public class UserController {
 
@@ -52,13 +52,7 @@ public class UserController {
         if (userRegisterRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String userAccount = userRegisterRequest.getUserAccount();
-        String userPassword = userRegisterRequest.getUserPassword();
-        String checkPassword = userRegisterRequest.getCheckPassword();
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
-            return null;
-        }
-        long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        long result = userService.userRegister(userRegisterRequest);
         return ResultUtils.success(result);
     }
 
@@ -74,6 +68,15 @@ public class UserController {
         }
         User user = userService.userLogin(userAccount, userPassword, request);
         return ResultUtils.success(user);
+    }
+
+    @PostMapping("/register/send-email-code")
+    public BaseResponse<Boolean> sendEmailCode(@RequestBody SendEmailCodeRequest sendEmailCodeRequest) {
+        if (sendEmailCodeRequest == null || StringUtils.isBlank(sendEmailCodeRequest.getEmail())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "邮箱不能为空");
+        }
+        userService.sendEmailCode(sendEmailCodeRequest.getEmail());
+        return ResultUtils.success(true);
     }
 
     @PostMapping("/logout")
