@@ -1,5 +1,6 @@
 package com.xiaohua.echo.controller;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xiaohua.echo.common.BaseResponse;
@@ -116,6 +117,27 @@ public class UserController {
         return ResultUtils.success(list);
     }
 
+    @GetMapping("/recommend")
+    public BaseResponse<List<User>> recommendUsers(HttpServletRequest request) {
+        log.info("request:{}",request);
+
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (userObj == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        User currentUser = (User) userObj;
+        log.info("currentUser:{}", JSONUtil.toJsonStr(currentUser));
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("gender", currentUser.getGender());
+        List<User> userList = userService.list(queryWrapper);
+        List<User> list = userList.stream()
+                .filter(user -> !user.getId().equals(currentUser.getId()))
+                .map(user -> userService.getSafetyUser(user))
+                .collect(Collectors.toList());
+        return ResultUtils.success(list);
+    }
+
     @GetMapping("/search/tags")
     public BaseResponse<List<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList) {
         if (CollectionUtils.isEmpty(tagNameList)) {
@@ -162,6 +184,7 @@ public class UserController {
         if (num <= 0 || num > 20) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        //TODO 获取当前用户，匹配标签+性别（异性）
         User user = userService.getLoginUser(request);
         return ResultUtils.success(userService.matchUsers(num, user));
     }
