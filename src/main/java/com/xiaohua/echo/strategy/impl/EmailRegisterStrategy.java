@@ -1,6 +1,7 @@
 package com.xiaohua.echo.strategy.impl;
 
 import com.xiaohua.echo.common.ErrorCode;
+import com.xiaohua.echo.constant.CacheKey;
 import com.xiaohua.echo.exception.BusinessException;
 import com.xiaohua.echo.mapper.UserMapper;
 import com.xiaohua.echo.model.entity.User;
@@ -16,7 +17,6 @@ import javax.annotation.Resource;
 @Component
 public class EmailRegisterStrategy implements RegisterStrategy {
 
-    private static final String EMAIL_CODE_PREFIX = "email:code:";
     private static final String SALT = "xiaohua";
 
     @Resource
@@ -36,7 +36,7 @@ public class EmailRegisterStrategy implements RegisterStrategy {
         if (userPassword.length() < 8) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码长度不能小于8位");
         }
-        String redisKey = EMAIL_CODE_PREFIX + email;
+        String redisKey = CacheKey.EMAIL_CODE.key(email);
         String cachedCode = stringRedisTemplate.opsForValue().get(redisKey);
         if (cachedCode == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码已过期，请重新获取");

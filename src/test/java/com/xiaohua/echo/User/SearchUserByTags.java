@@ -24,7 +24,7 @@ public class SearchUserByTags {
         tagNameList.add("java");
         tagNameList.add("python");
         tagNameList.add("c++");
-        List<User> userList = userService.searchUsersByTags(tagNameList);
+        List<User> userList = userService.searchUsersByTags(tagNameList, 1, 10);
         System.out.println(userList);
 
     }

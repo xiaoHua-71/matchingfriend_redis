@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.xiaohua.echo.common.ErrorCode;
+import com.xiaohua.echo.constant.CacheKey;
 import com.xiaohua.echo.constant.UserConstant;
 import com.xiaohua.echo.exception.BusinessException;
 import com.xiaohua.echo.mapper.UserMapper;
@@ -27,7 +28,7 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
+
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -113,7 +114,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public void sendEmailCode(String email) {
         String code = String.valueOf((int) ((Math.random() * 9 + 1) * 100000));
-        stringRedisTemplate.opsForValue().set("email:code:" + email, code, 5, java.util.concurrent.TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set(CacheKey.EMAIL_CODE.key(email), code,
+                CacheKey.EMAIL_CODE.ttlMinutes(), TimeUnit.MINUTES);
         emailService.sendVerificationCode(email, code);
     }
 
@@ -181,14 +183,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         Set<String> userIdSet;
         if (tagNameList.size() == 1) {
             // 单个标签：直接 ZREVRANGE
-            String tagKey = "tag:" + tagNameList.get(0);
+            String tagKey = CacheKey.TAG_INDEX.key(tagNameList.get(0));
             userIdSet = stringRedisTemplate.opsForZSet().reverseRange(tagKey, start, end);
             log.info("[步骤2] 单标签查询，ZREVRANGE {} {} {}，结果={}", tagKey, start, end,
                     userIdSet != null ? userIdSet.size() : 0);
         } else {
             // 多个标签：ZUNIONSTORE 合并
-            String tmpKey = "tmp:search:" + UUID.randomUUID().toString().replace("-", "");
-            List<String> tagKeys = tagNameList.stream().map(t -> "tag:" + t).collect(Collectors.toList());
+            String tmpKey = CacheKey.SEARCH_TMP.key(UUID.randomUUID().toString().replace("-", ""));
+            List<String> tagKeys = tagNameList.stream()
+                    .map(t -> CacheKey.TAG_INDEX.key(t))
+                    .collect(Collectors.toList());
             log.info("[步骤2] 多标签 ZUNIONSTORE，keys={}, dest={}", tagKeys, tmpKey);
 
             stringRedisTemplate.opsForZSet().unionAndStore(
@@ -196,7 +200,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                     tagKeys.subList(1, tagKeys.size()),
                     tmpKey
             );
-            stringRedisTemplate.expire(tmpKey, 1, TimeUnit.MINUTES);
+            stringRedisTemplate.expire(tmpKey, CacheKey.SEARCH_TMP.ttlMinutes(), TimeUnit.MINUTES);
 
             userIdSet = stringRedisTemplate.opsForZSet().reverseRange(tmpKey, start, end);
             log.info("[步骤2] ZREVRANGE 临时key {} {} {}，结果={}", tmpKey, start, end,
@@ -225,7 +229,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * 确保 tag ZSET 存在，不存在则从 DB 懒加载
      */
     private void ensureTagZSet(String tagName) {
-        String tagKey = "tag:" + tagName;
+        String tagKey = CacheKey.TAG_INDEX.key(tagName);
         if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(tagKey))) {
             log.info("  [tag缓存] {} 已存在，跳过", tagKey);
             return;
@@ -253,7 +257,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             }
             return null;
         });
-        stringRedisTemplate.expire(tagKey, 30, TimeUnit.MINUTES);
+        stringRedisTemplate.expire(tagKey, CacheKey.TAG_INDEX.ttlMinutes(), TimeUnit.MINUTES);
         log.info("  [tag缓存] {} 写入完成，共 {} 个 member", tagKey, userIds.size());
     }
 
@@ -366,7 +370,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public List<User> recommendUsers(int pageNum, int pageSize, User currentUser) {
         int gender = currentUser.getGender();
         long currentUserId = currentUser.getId();
-        String zsetKey = "recommend:gender:" + gender;
+        String zsetKey = CacheKey.GENDER_INDEX.key(gender);
         int start = (pageNum - 1) * pageSize;
         int end = start + pageSize - 1;
 
@@ -460,8 +464,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         long t4 = System.currentTimeMillis();
         log.info("  [重建ZSET] pipeline 写入完成，耗时={}ms", t4 - t3);
 
-        stringRedisTemplate.expire(zsetKey, 10, TimeUnit.MINUTES);
-        log.info("  [重建ZSET] 设置过期时间 10 分钟，key={}", zsetKey);
+        stringRedisTemplate.expire(zsetKey, CacheKey.GENDER_INDEX.ttlMinutes(), TimeUnit.MINUTES);
+        log.info("  [重建ZSET] 设置过期时间 {} 分钟，key={}", CacheKey.GENDER_INDEX.ttlMinutes(), zsetKey);
     }
 
     /**
@@ -470,7 +474,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     private List<User> fetchUserInfoBatch(List<String> userIdList) {
         // 构建 cache key 列表
         List<String> cacheKeys = userIdList.stream()
-                .map(id -> "user:info:" + id)
+                .map(id -> CacheKey.USER_INFO.key(id))
                 .collect(Collectors.toList());
 
         // MGET 批量查
@@ -509,11 +513,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
                     for (User user : dbUsers) {
                         User safe = getSafetyUser(user);
-                        byte[] keyBytes = ("user:info:" + user.getId())
+                        byte[] keyBytes = CacheKey.USER_INFO.key(user.getId())
                                 .getBytes(StandardCharsets.UTF_8);
                         byte[] valueBytes = JSONUtil.toJsonStr(safe)
                                 .getBytes(StandardCharsets.UTF_8);
-                        connection.setEx(keyBytes, Duration.ofMinutes(30).getSeconds(), valueBytes);
+                        connection.setEx(keyBytes, CacheKey.USER_INFO.ttlSeconds(), valueBytes);
                     }
                     return null;
                 });
