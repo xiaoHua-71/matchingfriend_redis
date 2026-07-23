@@ -25,6 +25,10 @@ public enum CacheKey {
     // ========== 业务 ==========
     /** 邮箱验证码 */
     EMAIL_CODE("email:code:%s", Duration.ofMinutes(5)),
+
+    // ========== 聊天 ==========
+    /** 用户未读消息总数 (String, INCR/DECR) */
+    CHAT_UNREAD("chat:unread:%s", Duration.ofDays(7)),
     ;
 
     private final String pattern;

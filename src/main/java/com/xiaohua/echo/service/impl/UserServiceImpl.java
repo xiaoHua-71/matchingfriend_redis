@@ -245,9 +245,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         log.info("  [tag缓存] DB查询完成，耗时={}ms，查到 {} 个用户", t2 - t1, userIds.size());
 
         if (CollectionUtils.isEmpty(userIds)) {
-            // 占位：写一个空集合标记位，防止缓存穿透
+            // 占位：写一个空集合标记位，防止缓存穿透，下次在遇到不存在的标签时，缓存层直接返回空集合
+            stringRedisTemplate.opsForZSet().add(tagKey, "__EMPTY__", 0);
+            stringRedisTemplate.expire(tagKey, CacheKey.TAG_INDEX.ttlMinutes(), TimeUnit.MINUTES);
             return;
         }
+
 
         stringRedisTemplate.executePipelined((RedisCallback<Object>) connection -> {
             byte[] keyBytes = tagKey.getBytes(StandardCharsets.UTF_8);

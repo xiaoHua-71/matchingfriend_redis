@@ -78,4 +78,44 @@ CREATE TABLE `user_team`  (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户队伍关系' ROW_FORMAT = DYNAMIC;
 
+
+-- ----------------------------
+-- Table structure for conversation
+-- ----------------------------
+DROP TABLE IF EXISTS `conversation`;
+CREATE TABLE `conversation` (
+`id`           BIGINT NOT NULL AUTO_INCREMENT COMMENT '会话ID',
+`userAId`      BIGINT NOT NULL COMMENT '较小userId',
+`userBId`      BIGINT NOT NULL COMMENT '较大userId',
+`lastMsgId`    BIGINT DEFAULT NULL COMMENT '最后一条消息ID',
+`lastMsgTime`  DATETIME DEFAULT NULL COMMENT '最后消息时间',
+`userADeleted` TINYINT NOT NULL DEFAULT 0 COMMENT '用户A是否隐藏会话 0=否 1=是',
+`userBDeleted` TINYINT NOT NULL DEFAULT 0 COMMENT '用户B是否隐藏会话 0=否 1=是',
+`createTime`   DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+`updateTime`   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+PRIMARY KEY (`id`),
+UNIQUE INDEX `uk_user_pair` (`userAId`, `userBId`),
+INDEX `idx_userA` (`userAId`, `lastMsgTime` DESC),
+INDEX `idx_userB` (`userBId`, `lastMsgTime` DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='会话';
+
+-- ----------------------------
+-- Table structure for message
+-- ----------------------------
+DROP TABLE IF EXISTS `message`;
+CREATE TABLE `message` (
+`id`             BIGINT NOT NULL AUTO_INCREMENT COMMENT '消息ID',
+`conversationId` BIGINT NOT NULL COMMENT '会话ID',
+`senderId`       BIGINT NOT NULL COMMENT '发送者ID',
+`receiverId`     BIGINT NOT NULL COMMENT '接收者ID',
+`content`        VARCHAR(5000) NOT NULL COMMENT '消息内容',
+`msgType`        TINYINT NOT NULL DEFAULT 0 COMMENT '0=文本 1=图片 2=系统消息',
+`status`         TINYINT NOT NULL DEFAULT 0 COMMENT '0=未读 1=已读 2=已撤回',
+`createTime`     DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
+PRIMARY KEY (`id`),
+INDEX `idx_conversation` (`conversationId`, `createTime` DESC),
+INDEX `idx_receiver_status` (`receiverId`, `status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='消息';
+
+
 SET FOREIGN_KEY_CHECKS = 1;

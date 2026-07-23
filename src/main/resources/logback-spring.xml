@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <!-- 彩色日志格式：仿 Spring Boot 风格 -->
+    <!-- 彩色日志格式：Logback 原生颜色转换器 -->
     <property name="CONSOLE_LOG_PATTERN"
-              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr([%t]){magenta} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"/>
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) %magenta([%t]) %cyan(%-40.40logger{39}) : %m%n%ex"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -10,7 +10,7 @@
         </encoder>
     </appender>
 
-    <!-- 项目包改成 DEBUG，能看到 @Slf4j 的所有日志 -->
+    <!-- 项目包 DEBUG，能看到所有日志 -->
     <logger name="com.xiaohua.echo" level="DEBUG"/>
 
     <root level="WARN">
